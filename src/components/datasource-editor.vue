@@ -1,6 +1,6 @@
 <template>
 <div class="conf-tpl-container">
-    <ConfTplGroupList :btn-title="btnTitle" :dialog-title="dialogTitle" :showColumn="showColumn" :editor-props="editorProps" v-model="value" :submitDialog="submitDialog"></ConfTplGroupList>
+    <ConfTplGroupList ref="confTpl" :btn-title="btnTitle" :dialog-title="dialogTitle" :showColumn="showColumn" :editor-props="editorProps" v-model="value" :submitDialog="submitDialog" :beforeOpenDialog="checkDataSourceNames"></ConfTplGroupList>
 </div>
 </template>
 
@@ -18,8 +18,11 @@ export default {
     props: {
         value: {
             type: Array,
-            required: true
-        }
+            required: true,
+            default: () => {
+                return [];
+            }
+        },
         // resultMapping: {
         //     type: Function,
         //     default: () => {}
@@ -27,6 +30,8 @@ export default {
     },
     data() {
         return {
+            dataSourceNames: '', // 数据源名称表
+            groupLabelArray: [], // 数据源名下拉框
             resultValue: [], // 返回值
             btnTitle: '添加数据源',
             dialogTitle: '- 添加数据源 -',
@@ -37,14 +42,17 @@ export default {
                     rules: {
                         groupLabel: [{
                             required: true,
-                            message: '请输入数据源名称',
-                            trigger: 'blur'
+                            message: '请选择数据源名称',
+                            trigger: 'change'
                         }, {
                             validator: (rule, value, callback) => {
                                 let reg = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
                                 if (!reg.test(value)) {
                                     callback(new Error('只允许英文字母、数字、下划线[_]和横线[-]，且不能以数字开头'));
                                 } else {
+                                    if (this.dataSourceNames) {
+                                        // let dataSourceName = 
+                                    }
                                     callback();
                                 }
                             },
@@ -78,10 +86,11 @@ export default {
                     }
                 },
                 tplFormElems: [{
-                        'type': 'input',
+                        'type': 'select',
                         'name': 'groupLabel',
                         'bind': 'group.label',
-                        'label': '数据源名称'
+                        'label': '数据源名称',
+                        'helps': '数据源名称要与数据源名称表中的一一对应'
                     },
                     {
                         'type': 'input',
@@ -121,6 +130,13 @@ export default {
 
     },
     methods: {
+        checkDataSourceNames() {
+            if (this.dataSourceNames && this.dataSourceNames.length > 0) {
+                return true;
+            }
+            this.$parent.validate();
+            return false;
+        },
         submitDialog(val) {
             let result = [];
             if (val) {
@@ -174,10 +190,25 @@ export default {
             this.$set(this, 'resultValue', result);
             // this.$set(this, 'resultValue', );
             this.$emit('change', result);
+            this.$emit('addToElems', this.$attrs.item, result);
+        },
+        setDataSourceNames(names) {
+            if (names) {
+                let arr = names.split(',');
+                let arrMap = arr.map((a) => {
+                    return {
+                        value: a,
+                        label: a
+                    };
+                });
+                this.$set(this.editorProps.tplFormElems[0], 'items', arrMap);
+            } else {
+                this.$set(this.editorProps.tplFormElems[0], 'items', []);
+            }
         }
     },
     mounted() {
-
+        //console.log(this)
     }
 };
 </script>

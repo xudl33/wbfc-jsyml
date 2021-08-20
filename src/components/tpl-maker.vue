@@ -155,6 +155,7 @@
 
 <script>
 import _ from 'lodash';
+import Axios from 'axios';
 import TempleteBinder from 'wbfc-vs-tpl-editor/components/templete-binder';
 import TempleteEditor from 'wbfc-vs-tpl-editor/components/templete-editor';
 export default {
@@ -334,20 +335,55 @@ export default {
         //     return val + '';
         // },
         impTplItem() {
-            let tplJson = JSON.parse(this.tpl) || {};
-            // for (let i in tplJson.tplFormElems) {
-            //     let t = tplJson.tplFormElems[i];
-            //     if ('switch' == t.type) {
-            //         t.defVal = this.toString(t.defVal);
-            //         t.modelVal = this.toString(t.modelVal);
-            //     }
-            // }
-            this.$set(this, 'tplData', tplJson);
+            let tplObj = new Function(`return ${this.tpl}`).call(this);
+            this.$set(this, 'tplData', tplObj);
             this.$set(this, 'activeNames', this.tplData.tplFormElems.length - 1);
-        }
+        },
+         dynamicData() {
+            // 动态加载数据
+            let that = this;
+            // 加载数据
+            Axios({
+                url: 'http://localhost:8861/w/KlConfTpl/get',
+                contentType: 'application/json;charset=UTF-8',
+                headers: {
+                    'Authorization': 'bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsInVzZXJfbmFtZSI6ImFkbWluIiwib3BlbklkIjoiMSIsInVzZXJJZCI6MSwiYXV0aG9yaXRpZXMiOlsiUk9MRV9reWxpbl9hZG1pbiIsImtscDp1c3I6b3B0Iiwia2xwOm9wdCIsIlJPTEVfdXNlciIsIlJPTEVfYWNjb3VudCIsIlJPTEVfYWRtaW4iLCJzeXM6YmFja3VwIiwiYXV0aGVkIiwib3B0Om1hZyIsInN5czpjdXN0b21lciIsImFjdGl2ZWQiLCJzeXM6c2NoZWR1bGUiXSwiZXhwIjoxNjI5MjExNjU5fQ.FaBTq0ZQ3LwmD8GUBtbmpFUIwIZ2ckOA5rX-pmYuGhLv8f0cJjxCdVdaS4dad8tqUH6ZZUTDL9j6v4mtOFfBbH_l9IJfn4nuQVG7XceUYfaK9uocA3pvAyvggR3Tn2t-xpuc3Mi43HdcjN18fn0UVxFeMAaoBW1v_4DD8vSTpVF2J_uZIA27ch4kcpmIn64dGAMDndegFHNmeUcDTBxE3suji0-RWZT2D75n30KnJ_39Hs6UX0NLYxDgiF6p9Mcal22ORSMdsGAdkQr1LlZJJJqAfPfpSxj0KqmXTAUilqkBRICoRAPWdpHM9zQlAED8j-i_k9vOzpnMQqxbL1eJ8A'
+                },
+                method: 'post',
+                data: {
+                    'id': "547670711425488961"
+                }
+            }).then(function (response) {
+                let conf = {};
+                let res = response.data;
+                //let confRes = null;
+                let confVal = null;
+                //that.$set(that, 'tpl', res.result);
+                //that.$set(that.tpl, 'confTpl', res.result.confTpl);
+                try {
+                    //confRes = new Function(`return ${res.result.confResource}`).call(that);
+                    confVal = new Function(`return ${res.result.confVal}`).call(that);
+                } catch (e) {
+                    // let rec = 'conRes = ' + res.result.confResource || {} + '';
+                    // console.log(rec)
+                    // confRes = eval(rec);
+                    // confRes = new Function(`return ${res.result.confResource}`).call(that);
+                    // eval("(" + (res.result.confResource ) + ")");
+                }
+
+                //_.assign(conf, that.defVal, confRes, confVal);
+                that.$set(that, 'tpl', res.result.confResource);
+                // console.log(conf.tplForm);
+                that.impTplItem();
+                that.$set(that.tplData, 'tplModel', confVal.tplModel);
+
+            }).catch(function (response) {
+                console.log('axios exception', response);
+            });
+        },
     },
     mounted() {
-
+        this.dynamicData();
     }
 }
 </script>

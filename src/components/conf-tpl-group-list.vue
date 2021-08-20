@@ -103,7 +103,11 @@ export default {
             type: Function,
             required: true,
             default: () => {}
-        }
+        },
+        beforeOpenDialog: { // 开启对话框前回调
+            type: Function,
+            default: undefined
+        },
     },
     data() {
         return {
@@ -114,8 +118,15 @@ export default {
     },
     methods: {
         openDialog() {
-            // 打开对话框
-            this.dialogFormVisible = true;
+            let res;
+            if (this.beforeOpenDialog) {
+                res = this.beforeOpenDialog(this);
+            }
+            // 回调不等于false再弹出对话框
+            if (res !== false) {
+                // 打开对话框
+                this.dialogFormVisible = true;
+            }
         },
         closeDialog() {
             // 关闭对话框

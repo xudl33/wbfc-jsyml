@@ -16,7 +16,7 @@
     "lodash": "^4.17.21",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
-    "wbfc-vs-tpl-editor": "0.0.9"
+    "wbfc-vs-tpl-editor": "0.1.4"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
